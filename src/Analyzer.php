@@ -8,7 +8,14 @@ class Analyzer
 {
     public function runAnalysis(string $path): array
     {
-        $process = new Process(['phpcs', '--report=json', $path]);
+        // Используем путь относительно текущего пакета
+        $phpcsPath = __DIR__ . '/../../../squizlabs/php_codesniffer/bin/phpcs';
+        
+        if (!file_exists($phpcsPath)) {
+            throw new \RuntimeException('PHP_CodeSniffer не найден. Установите зависимости через composer install.');
+        }
+
+        $process = new Process([$phpcsPath, '--report=json', $path]);
 
         $process->run();
 
