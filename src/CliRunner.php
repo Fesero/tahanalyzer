@@ -29,6 +29,7 @@ class CliRunner
             }
         } catch (\Exception $e) {
             echo "❌ Ошибка: " . $e->getMessage() . "\n";
+            echo "Полный трейс:\n" . $e->getTraceAsString(); // Добавьте эту строку
             exit(1);
         }
     }

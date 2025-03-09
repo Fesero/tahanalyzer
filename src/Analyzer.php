@@ -15,12 +15,25 @@ class Analyzer
             throw new \RuntimeException('PHP_CodeSniffer не найден. Установите зависимости через composer install.');
         }
 
-        $process = new Process([$phpcsPath, '--report=json', $path]);
+        if (!file_exists($path)) {
+            throw new \RuntimeException("Путь не существует: $path");
+        }
+
+        $excludes = ['vendor']; // Пример исключения
+        $command = array_merge(
+            [$phpcsPath, '--report=json'],
+            array_map(fn($dir) => "--exclude=$dir", $excludes),
+            [$path]
+        );
+
+        $process = new Process($command);
 
         $process->run();
 
         if (!$process->isSuccessful()) {
-            throw new \Exception('Analysis failed: ' . $process->getErrorOutput());
+            $errorOutput = $process->getErrorOutput();
+            $exitCode = $process->getExitCode();
+            throw new \RuntimeException("Ошибка анализа (код $exitCode): $errorOutput");
         }
 
         return json_decode($process->getOutput(), true) ?: [];
