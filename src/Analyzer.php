@@ -32,8 +32,9 @@ class Analyzer
 
         if (!$process->isSuccessful()) {
             $errorOutput = $process->getErrorOutput();
+            $output = $process->getOutput();
             $exitCode = $process->getExitCode();
-            throw new \RuntimeException("Ошибка анализа (код $exitCode): $errorOutput");
+            throw new \RuntimeException("Ошибка анализа (код $exitCode): $errorOutput\n$output");
         }
 
         return json_decode($process->getOutput(), true) ?: [];
