@@ -1,0 +1,38 @@
+# Composer
+/vendor/
+/composer.lock
+/composer.phar
+
+# Локальные настройки
+.env
+.env.local
+.phpunit.result.cache
+
+# Временные файлы
+*.log
+*.tmp
+*.swp
+*.bak
+.cache/
+/logs/
+
+# IDE
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Тесты и отчеты
+/coverage/
+/phpunit.xml # Если есть пользовательский конфиг
+/report/
+
+# Сборки
+/build/
+/dist/
+
+# Документация
+/docs/_build/
