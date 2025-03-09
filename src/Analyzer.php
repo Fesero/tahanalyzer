@@ -22,7 +22,7 @@ class Analyzer
         $excludes = ['vendor']; // Пример исключения
         $command = array_merge(
             [$phpcsPath, '--report=json'],
-            array_map(fn($dir) => "--exclude=$dir", $excludes),
+            array_map(fn($dir) => "--ignore=$dir", $excludes),
             [$path]
         );
 
