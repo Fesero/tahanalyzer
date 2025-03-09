@@ -3,11 +3,13 @@
 namespace Fesero\Tahanalyzer;
 
 use Symfony\Component\HttpClient\HttpClient;
+use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class ApiClient
 {
     private $endPoint;
     private $token;
+    private $lastResponse;
 
     public function __construct(string $endPoint, string $token)
     {
@@ -18,11 +20,22 @@ class ApiClient
     public function sendResults(array $data): bool
     {
         $client = HttpClient::create();
-        $response = $client->request('POST', $this->endPoint, [
-            'headers' => ['Authorization' => "Bearer {$this->token}"],
-            'json' => $data,
-        ]);
+        try {
+            $this->lastResponse = $client->request('POST', $this->endPoint, [
+                'headers' => ['Authorization' => "Bearer {$this->token}"],
+                'json' => $data,
+            ]);
 
-        return $response->getStatusCode() === 200;
+            return $this->lastResponse->getStatusCode() === 200;
+        } catch (\Exception $e) {
+            $this->lastResponse = new \stdClass();
+            $this->lastResponse->error = $e->getMessage();
+            return false;
+        }
+    }
+
+    public function getLastResponse(): ?ResponseInterface
+    {
+        return $this->lastResponse;
     }
 }

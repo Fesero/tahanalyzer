@@ -25,7 +25,11 @@ class CliRunner
             if ($apiClient->sendResults($results)) {
                 echo "✅ Результаты успешно отправлены!\n";
             } else {
-                echo "❌ Ошибка при отправке данных\n";
+                $response = $apiClient->getLastResponse();
+                if ($response instanceof \Symfony\Contracts\HttpClient\ResponseInterface) {
+                    $content = $response->getContent();
+                    echo "❌ Ошибка: " . $response->getStatusCode() . " " . $content . "\n";
+                }
             }
         } catch (\Exception $e) {
             echo "❌ Ошибка: " . $e->getMessage() . "\n";
