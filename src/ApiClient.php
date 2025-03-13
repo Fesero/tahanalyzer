@@ -20,6 +20,7 @@ class ApiClient
     public function sendResults(array $data): bool
     {
         $client = HttpClient::create();
+        
         try {
             $this->lastResponse = $client->request('POST', $this->endPoint, [
                 'headers' => ['Authorization' => "Bearer {$this->token}"],

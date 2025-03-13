@@ -8,6 +8,14 @@
         "symfony/process": "^6.0 || ^7.0",
         "squizlabs/php_codesniffer": "^3.0"
     },
+    "scripts": {
+        "post-install-cmd": [
+            "Fesero\\Tahanalyzer\\Installer::copyConfig"
+        ],
+        "post-update-cmd": [
+            "Fesero\\Tahanalyzer\\Installer::copyConfig"
+        ]
+    },
     "license": "MIT",
     "autoload": {
         "psr-4": {

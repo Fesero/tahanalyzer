@@ -6,6 +6,15 @@ use Symfony\Component\Process\Process;
 
 class Analyzer
 {
+    private $standart;
+    private $exclude;
+
+    public function __construct(string $standart = 'PSR2', array $exclude = [])
+    {
+        $this->standart = $standart;
+        $this->exclude = $exclude;
+    }
+
     public function runAnalysis(string $path): array
     {
         // Используем путь относительно текущего пакета
@@ -19,15 +28,14 @@ class Analyzer
             throw new \RuntimeException("Путь не существует: $path");
         }
 
-        $excludes = ['vendor']; // Пример исключения
+        $excludeArgs = array_map(fn($dir) => "--ignore={$dir}", $this->exclude);
         $command = array_merge(
-            [$phpcsPath, '--report=json'],
-            array_map(fn($dir) => "--ignore=$dir", $excludes),
+            [$phpcsPath, '--report=json', "--standard={$this->standart}"],
+            $excludeArgs,
             [$path]
         );
 
         $process = new Process($command);
-
         $process->run();
 
         if (!$process->isSuccessful()) {

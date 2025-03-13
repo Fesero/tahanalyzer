@@ -1,0 +1,10 @@
+{
+    "paths": ["app", "database"],
+    "exclude": ["vendor", "node_modules"],
+    "standart": "PSR2",
+    "severity": 5,
+    "api": {
+        "endpoint": "",
+        "token": ""
+    }
+}
