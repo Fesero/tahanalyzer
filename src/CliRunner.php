@@ -11,7 +11,7 @@ class CliRunner
         //Загрузка конфига
         $config = self::loadConfig(getcwd());
 
-        $endpoint = $config['api']['endpoint'];
+        $endpoint = $config['api']['base_url'];
         $token = $config['api']['token'];
         $standart = $config['standart'];
         $exclude = $config['exclude'];
