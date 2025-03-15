@@ -18,8 +18,8 @@ class Analyzer
     public function runAnalyze(string $path, string $type): array
     {
         return match($type) {
-            'Sniffer' => $this->runSniffer($path),
-            'PHPStan' => $this->runPHPStan($path)
+            'sniffer' => $this->runSniffer($path),
+            'phpstan' => $this->runPHPStan($path)
         };
     }
 

@@ -2,6 +2,8 @@
 
 namespace Fesero\Tahanalyzer;
 
+use \Symfony\Contracts\HttpClient\ResponseInterface;
+
 class CliRunner
 {
     public static function run(array $argv)
@@ -30,18 +32,17 @@ class CliRunner
                 $token ?? ''
             );
 
-            foreach ($paths as $path) {
-                $results[] = $analyzer->runAnalyze($path, 'Sniffer');
-                $results[] = $analyzer->runAnalyze($path, 'PHPStan');
-
-                if ($apiClient->sendResults($results)) {
-                    echo "✅ Результаты успешно отправлены!\n";
-                } else {
-                    $response = $apiClient->getLastResponse();
-                    if ($response instanceof \Symfony\Contracts\HttpClient\ResponseInterface) {
-                        $content = $response->getContent();
-                        echo "❌ Ошибка: " . $response->getStatusCode() . " " . $content . "\n";
-                    }
+            foreach ($config['paths'] as $path) {
+                // Запуск PHP_CodeSniffer
+                $snifferResults = $analyzer->runAnalyze($path, 'sniffer');
+                if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
+                    self::handleError($apiClient->getLastResponse());
+                }
+    
+                // Запуск PHPStan
+                $phpstanResults = $analyzer->runAnalyze($path, 'phpstan');
+                if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
+                    self::handleError($apiClient->getLastResponse());
                 }
             }
         } catch (\Exception $e) {
@@ -49,6 +50,13 @@ class CliRunner
             echo "Полный трейс:\n" . $e->getTraceAsString(); // Добавьте эту строку
             exit(1);
         }
+    }
+
+    private static function handleError(ResponseInterface $response) {
+        $content = json_decode($response->getContent(), true);
+        echo "❌ Ошибка: " . $response->getStatusCode() . "\n";
+        print_r($content['errors']);
+        exit(1);
     }
 
     private static function loadConfig($path)

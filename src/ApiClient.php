@@ -7,22 +7,24 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class ApiClient
 {
-    private $endPoint;
+    private $baseUrl;
     private $token;
     private $lastResponse;
 
-    public function __construct(string $endPoint, string $token)
+    public function __construct(string $baseUrl, string $token)
     {
-        $this->endPoint = $endPoint;
+        $this->baseUrl = $baseUrl;
         $this->token = $token;
     }
 
-    public function sendResults(array $data): bool
+    public function sendResults(array $data, string $type): bool
     {
         $client = HttpClient::create();
+
+        $endpoint = "{$this->baseUrl}/tests/{$type}";
         
         try {
-            $this->lastResponse = $client->request('POST', $this->endPoint, [
+            $this->lastResponse = $client->request('POST', $endpoint, [
                 'headers' => ['Authorization' => "Bearer {$this->token}"],
                 'json' => $data,
             ]);
