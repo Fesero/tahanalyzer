@@ -31,7 +31,8 @@ class CliRunner
             );
 
             foreach ($paths as $path) {
-                $results = $analyzer->runAnalysis($path);
+                $results[] = $analyzer->runAnalyze($path, 'Sniffer');
+                $results[] = $analyzer->runAnalyze($path, 'PHPStan');
 
                 if ($apiClient->sendResults($results)) {
                     echo "✅ Результаты успешно отправлены!\n";

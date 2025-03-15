@@ -13,5 +13,13 @@ class Installer
             copy($source, $destination);
             echo "\nФайл конфигурации создан: test-collector.json\n";
         }
+
+        $sourcePHPStan = __DIR__ . '/../config/phpstan.neon';
+        $destinationPHPStan = getcwd() . '/phpstan.neon';
+
+        if (!file_exists($destinationPHPStan)) {
+            copy($sourcePHPStan, $destinationPHPStan);
+            echo "\nФайл конфигурации создан: phpstan.neon\n";
+        }
     }
 }

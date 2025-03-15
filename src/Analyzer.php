@@ -15,7 +15,15 @@ class Analyzer
         $this->exclude = $exclude;
     }
 
-    public function runAnalysis(string $path): array
+    public function runAnalyze(string $path, string $type): array
+    {
+        return match($type) {
+            'Sniffer' => $this->runSniffer($path),
+            'PHPStan' => $this->runPHPStan($path)
+        };
+    }
+
+    private function runSniffer(string $path): array
     {
         // Используем путь относительно текущего пакета
         $phpcsPath = __DIR__ . '/../../../squizlabs/php_codesniffer/bin/phpcs';
@@ -46,6 +54,33 @@ class Analyzer
             $errorOutput = $process->getErrorOutput();
             $output = $process->getOutput();
             throw new \RuntimeException("Ошибка анализа (код $exitCode): $errorOutput\n$output");
+        }
+
+        return json_decode($process->getOutput(), true) ?: [];
+    }
+
+    private function runPHPStan(string $path): array
+    {
+        $phpstanPath = __DIR__ . '/../../../phpstan/phpstan';
+
+        if (!file_exists($phpstanPath)) {
+            throw new \RuntimeException('PHPStan не найден. Установите через composer require --dev phpstan/phpstan');
+        }
+
+        $command = [
+            $phpstanPath,
+            'analyse',
+            '--error-format=json',
+            "--configuration=phpstan.neon",
+            $path
+        ];
+
+        $process = new Process($command);
+        $process->run();
+
+        if (!$process->isSuccessful()) {
+            $errorOutput = $process->getErrorOutput();
+            throw new \RuntimeException("PHPStan ошибка: {$errorOutput}");
         }
 
         return json_decode($process->getOutput(), true) ?: [];
