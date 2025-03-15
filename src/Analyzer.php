@@ -61,7 +61,7 @@ class Analyzer
 
     private function runPHPStan(string $path): array
     {
-        $phpstanPath = __DIR__ . '/../../../phpstan/phpstan';
+        $phpstanPath = __DIR__ . '/../../../phpstan/phpstan/phpstan';
 
         if (!file_exists($phpstanPath)) {
             throw new \RuntimeException('PHPStan не найден. Установите через composer require --dev phpstan/phpstan');
