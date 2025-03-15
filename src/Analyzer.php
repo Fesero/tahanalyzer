@@ -26,7 +26,7 @@ class Analyzer
     private function runSniffer(string $path): array
     {
         // Используем путь относительно текущего пакета
-        $phpcsPath = __DIR__ . '/../../../squizlabs/php_codesniffer/bin/phpcs';
+        $phpcsPath = __DIR__ . '/../../../bin/phpcs';
         
         if (!file_exists($phpcsPath)) {
             throw new \RuntimeException('PHP_CodeSniffer не найден. Установите зависимости через composer install.');
@@ -61,7 +61,7 @@ class Analyzer
 
     private function runPHPStan(string $path): array
     {
-        $phpstanPath = __DIR__ . '/../../../phpstan/phpstan/phpstan';
+        $phpstanPath = __DIR__ . '/../../../bin/phpstan';
 
         if (!file_exists($phpstanPath)) {
             throw new \RuntimeException('PHPStan не найден. Установите через composer require --dev phpstan/phpstan');
