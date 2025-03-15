@@ -79,6 +79,10 @@ class Analyzer
         $process->run();
 
         if (!$process->isSuccessful()) {
+            $exitCode = $process->getExitCode();
+            if ($exitCode === 1) {
+                return json_decode($process->getOutput(), true);
+            }
             $errorOutput = $process->getErrorOutput();
             throw new \RuntimeException("PHPStan ошибка: {$errorOutput}");
         }
