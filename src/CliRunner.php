@@ -55,7 +55,7 @@ class CliRunner
     private static function handleError(ResponseInterface $response) {
         $content = json_decode($response->getContent(), true);
         echo "❌ Ошибка: " . $response->getStatusCode() . "\n";
-        print_r($content['errors']);
+        print_r($content);
         exit(1);
     }
 
