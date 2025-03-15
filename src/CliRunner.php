@@ -56,7 +56,6 @@ class CliRunner
         $content = json_decode($response->getContent(), true);
         echo "❌ Ошибка: " . $response->getStatusCode() . "\n";
         print_r($content);
-        exit(1);
     }
 
     private static function loadConfig($path)
