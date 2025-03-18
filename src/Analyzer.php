@@ -6,13 +6,13 @@ use Symfony\Component\Process\Process;
 
 class Analyzer
 {
-    private $standart;
     private $exclude;
+    private $configPath;
 
-    public function __construct(string $standart = 'PSR2', array $exclude = [])
+    public function __construct(array $exclude = [])
     {
-        $this->standart = $standart;
         $this->exclude = $exclude;
+        $this->configPath = getcwd() . '/phpcs.xml';
     }
 
     public function runAnalyze(string $path, string $type): array
@@ -36,9 +36,19 @@ class Analyzer
             throw new \RuntimeException("Путь не существует: $path");
         }
 
+        // Проверяем наличие конфигурации
+        if (!file_exists($this->configPath)) {
+            throw new \RuntimeException("Файл конфигурации phpcs.xml не найден. Запустите composer install для его создания.");
+        }
+
         $excludeArgs = array_map(fn($dir) => "--ignore={$dir}", $this->exclude);
         $command = array_merge(
-            [$phpcsPath, '--report=json', "--standard={$this->standart}"],
+            [
+                $phpcsPath,
+                "-d", "memory_limit=512M",
+                '--report=json',
+                "--standard={$this->configPath}"
+            ],
             $excludeArgs,
             [$path]
         );

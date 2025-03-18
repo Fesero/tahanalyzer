@@ -14,6 +14,12 @@ class Installer {
             'phpstan.neon',
             isJson: false
         );
+
+        self::updateConfig(
+            'phpcs.example.xml',
+            'phpcs.xml',
+            isJson: false
+        );
     }
 
     private static function updateConfig(
@@ -63,6 +69,12 @@ class Installer {
             return $config['version'] ?? 1;
         }
         
+        // Для XML и YAML
+        if (str_ends_with($path, '.xml')) {
+            preg_match('/version"\s+value="(\d+)"/', $content, $matches);
+            return $matches[1] ?? 1;
+        }
+        
         // Для YAML (phpstan.neon)
         preg_match('/version:\s*(\d+)/', $content, $matches);
         return $matches[1] ?? 1;
@@ -85,7 +97,7 @@ class Installer {
             return json_encode($merged, JSON_PRETTY_PRINT);
         }
 
-        // Для YAML (пока простая замена)
+        // Для XML и YAML (пока простая замена)
         return file_get_contents($newConfigPath);
     }
 }

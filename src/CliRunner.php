@@ -36,13 +36,13 @@ class CliRunner
                 // Запуск PHP_CodeSniffer
                 $snifferResults = $analyzer->runAnalyze($path, 'sniffer');
                 if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
-                    self::handleError($apiClient->getLastResponse());
+                    echo "❌ " . $apiClient->getFormattedError() . "\n";
                 }
     
                 // Запуск PHPStan
                 $phpstanResults = $analyzer->runAnalyze($path, 'phpstan');
                 if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
-                    self::handleError($apiClient->getLastResponse());
+                    echo "❌ " . $apiClient->getFormattedError() . "\n";
                 }
             }
         } catch (\Exception $e) {
@@ -52,10 +52,35 @@ class CliRunner
         }
     }
 
-    private static function handleError(ResponseInterface $response) {
-        $content = json_decode($response->getContent(), true);
-        echo "❌ Ошибка: " . $response->getStatusCode() . "\n";
-        print_r($content);
+    private static function handleError(?ResponseInterface $response, ?string $error = null) {
+        if ($response === null) {
+            echo "❌ Ошибка соединения: " . $error . "\n";
+            return;
+        }
+
+        try {
+            $statusCode = $response->getStatusCode();
+            echo "❌ Ошибка сервера (HTTP {$statusCode}):\n";
+            
+            try {
+                $content = $response->getContent();
+                $data = json_decode($content, true);
+                
+                if (isset($data['message'])) {
+                    echo "Сообщение: {$data['message']}\n";
+                } elseif (isset($data['error'])) {
+                    echo "Сообщение: {$data['error']}\n";
+                } else {
+                    echo "Детали:\n";
+                    print_r($data);
+                }
+            } catch (\Exception $e) {
+                echo "Не удалось получить содержимое ответа\n";
+            }
+        } catch (\Exception $e) {
+            echo "❌ Ошибка при обработке ответа: " . $e->getMessage() . "\n";
+            echo "Статус: HTTP {$response->getStatusCode()}\n";
+        }
     }
 
     private static function loadConfig($path)

@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<ruleset name="TAHAnalyzer PHPCS Config" 
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd">
+    <description>PHP_CodeSniffer configuration optimized for code quality with minimal formatting restrictions</description>
+
+    <!-- Version for config updates -->
+    <config name="version" value="1"/>
+
+    <!-- Use PSR-12 as base -->
+    <rule ref="PSR12">
+        <!-- Exclude formatting rules -->
+        <exclude name="Generic.WhiteSpace.ScopeIndent"/>
+        <exclude name="Generic.WhiteSpace.DisallowTabIndent"/>
+        <exclude name="Squiz.WhiteSpace.SuperfluousWhitespace"/>
+        <exclude name="PSR2.Files.EndFileNewline"/>
+        <exclude name="PSR2.Files.ClosingTag"/>
+        <exclude name="Generic.Files.LineLength"/>
+        <exclude name="Generic.Files.LineEndings"/>
+        
+        <!-- Keep important rules -->
+        <exclude name="PSR1.Classes.ClassDeclaration"/>
+        <exclude name="PSR1.Files.SideEffects"/>
+        <exclude name="PSR1.Methods.CamelCapsMethodName"/>
+        <exclude name="PSR2.Classes.PropertyDeclaration"/>
+        <exclude name="PSR2.ControlStructures.ControlStructureSpacing"/>
+        <exclude name="PSR2.Methods.MethodDeclaration"/>
+        <exclude name="PSR2.Namespaces.NamespaceDeclaration"/>
+        <exclude name="PSR2.Namespaces.UseDeclaration"/>
+    </rule>
+
+    <!-- Ignore vendor directory -->
+    <exclude-pattern>*/vendor/*</exclude-pattern>
+    <exclude-pattern>*/storage/*</exclude-pattern>
+
+    <!-- Arguments -->
+    <arg name="colors"/>
+    <arg value="p"/>
+    <arg name="report" value="full"/>
+    <arg name="report-width" value="120"/>
+    <arg name="encoding" value="utf-8"/>
+</ruleset> 
