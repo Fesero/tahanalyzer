@@ -11,7 +11,7 @@ class ApiClient
     private $token;
     private $lastResponse;
     private $lastError;
-    private const CHUNK_SIZE = 15; // Number of files per chunk
+    private const CHUNK_SIZE = 3; // Number of files per chunk
 
     public function __construct(string $baseUrl, string $token)
     {
@@ -32,11 +32,10 @@ class ApiClient
         foreach ($fileEntries as $index => $chunkFiles) {
             $chunkData = $data;
             $chunkData['files'] = $chunkFiles;
-            $chunkData['chunk_info'] = [
-                'current' => $index + 1,
-                'total' => count($fileEntries)
-            ];
-            $chunks[] = $chunkData;
+            $chunkData['totals'] = $data['total'] ?? 0;
+            if ($chunkData['files'] && $chunkData['totals']) {
+                $chunks[] = $chunkData;
+            }
         }
 
         return $chunks;
@@ -52,32 +51,10 @@ class ApiClient
         foreach ($chunks as $chunk) {
             $endpoint = "{$this->baseUrl}/tests/{$type}";
             
-            try {
-                $this->lastResponse = $client->request('POST', $endpoint, [
-                    'headers' => ['Authorization' => "Bearer {$this->token}"],
-                    'json' => $chunk
-                ]);
-
-                // Check status code without throwing
-                $statusCode = $this->lastResponse->getStatusCode();
-                
-                // Продолжаем только при 200 или 422
-                if ($statusCode === 422) {
-                    $hasErrors = true;
-                    echo "⚠️  Предупреждение: Чанк {$chunk['chunk_info']['current']} из {$chunk['chunk_info']['total']} вернул ошибку валидации\n";
-                    echo "   " . $this->getFormattedError() . "\n";
-                    continue; // Продолжаем со следующим чанком
-                }
-                
-                if ($statusCode !== 200) {
-                    $success = false;
-                    break; // Прерываем только при критических ошибках
-                }
-            } catch (\Exception $e) {
-                $this->lastError = $e->getMessage();
-                $success = false;
-                break;
-            }
+            $this->lastResponse = $client->request('POST', $endpoint, [
+                'headers' => ['Authorization' => "Bearer {$this->token}"],
+                'json' => $chunk
+            ]);
         }
 
         return $success;

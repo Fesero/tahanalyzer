@@ -25,8 +25,8 @@ class Analyzer
 
     private function runSniffer(string $path): array
     {
-        // Используем путь относительно текущего пакета
-        $phpcsPath = __DIR__ . '/../../../bin/phpcs';
+        // Используем путь относительно проекта
+        $phpcsPath = $this->normalizePath(getcwd() . '/vendor/bin/phpcs');
         
         if (!file_exists($phpcsPath)) {
             throw new \RuntimeException('PHP_CodeSniffer не найден. Установите зависимости через composer install.');
@@ -59,25 +59,32 @@ class Analyzer
         if (!$process->isSuccessful()) {
             $exitCode = $process->getExitCode();
             if ($exitCode === 2) {
-                return json_decode($process->getOutput(), true);
+                $result = json_decode($process->getOutput(), true);
+                return $result ?: ['files' => [], 'totals' => ['errors' => 0, 'warnings' => 0]];
             }
             $errorOutput = $process->getErrorOutput();
             $output = $process->getOutput();
             throw new \RuntimeException("Ошибка анализа (код $exitCode): $errorOutput\n$output");
         }
 
-        return json_decode($process->getOutput(), true) ?: [];
+        return ['files' => [], 'totals' => ['errors' => 0, 'warnings' => 0]];
     }
 
     private function runPHPStan(string $path): array
     {
-        $phpstanPath = __DIR__ . '/../../../bin/phpstan';
+        // Используем PHP для запуска PHPStan
+        $phpstanPath = $this->normalizePath(getcwd() . '/vendor/phpstan/phpstan/bin/phpstan');
 
         if (!file_exists($phpstanPath)) {
             throw new \RuntimeException('PHPStan не найден. Установите через composer require --dev phpstan/phpstan');
         }
 
+        if (!file_exists($path)) {
+            throw new \RuntimeException("Путь не существует: $path");
+        }
+
         $command = [
+            PHP_BINARY,
             $phpstanPath,
             'analyse',
             '--error-format=json',
@@ -91,12 +98,27 @@ class Analyzer
         if (!$process->isSuccessful()) {
             $exitCode = $process->getExitCode();
             if ($exitCode === 1) {
-                return json_decode($process->getOutput(), true);
+                $result = json_decode($process->getOutput(), true);
+                return $result ?: ['files' => [], 'totals' => ['errors' => 0, 'file_errors' => 0]];
             }
             $errorOutput = $process->getErrorOutput();
             throw new \RuntimeException("PHPStan ошибка: {$errorOutput}");
         }
 
-        return json_decode($process->getOutput(), true) ?: [];
+        return ['files' => [], 'totals' => ['errors' => 0, 'file_errors' => 0]];
+    }
+
+    private function normalizePath(string $path): string
+    {
+        // Заменяем все разделители путей на DIRECTORY_SEPARATOR
+        $path = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
+        
+        // Убираем двойные разделители
+        $path = preg_replace('#\\' . DIRECTORY_SEPARATOR . '+#', DIRECTORY_SEPARATOR, $path);
+        
+        // Убираем разделитель в конце пути, если он есть
+        $path = rtrim($path, DIRECTORY_SEPARATOR);
+        
+        return $path;
     }
 }

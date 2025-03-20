@@ -24,7 +24,6 @@ class CliRunner
 
         try {
             $analyzer = new Analyzer(
-                $standart ?? 'PSR2',
                 $exclude ?? ['vendor']
             );
             $apiClient = new ApiClient(
@@ -35,14 +34,18 @@ class CliRunner
             foreach ($config['paths'] as $path) {
                 // Запуск PHP_CodeSniffer
                 $snifferResults = $analyzer->runAnalyze($path, 'sniffer');
-                if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
-                    echo "❌ " . $apiClient->getFormattedError() . "\n";
+                if (!empty($snifferResults['files'])) {
+                    if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
+                        echo "❌ " . $apiClient->getFormattedError() . "\n";
+                    }
                 }
     
                 // Запуск PHPStan
                 $phpstanResults = $analyzer->runAnalyze($path, 'phpstan');
-                if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
-                    echo "❌ " . $apiClient->getFormattedError() . "\n";
+                if (!empty($phpstanResults['files'])) {
+                    if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
+                        echo "❌ " . $apiClient->getFormattedError() . "\n";
+                    }
                 }
             }
         } catch (\Exception $e) {

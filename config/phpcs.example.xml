@@ -36,7 +36,7 @@
     <!-- Arguments -->
     <arg name="colors"/>
     <arg value="p"/>
-    <arg name="report" value="full"/>
+    <arg name="report" value="json"/>
     <arg name="report-width" value="120"/>
     <arg name="encoding" value="utf-8"/>
 </ruleset> 
