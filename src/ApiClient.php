@@ -32,10 +32,8 @@ class ApiClient
         foreach ($fileEntries as $index => $chunkFiles) {
             $chunkData = $data;
             $chunkData['files'] = $chunkFiles;
-            $chunkData['totals'] = $data['total'] ?? 0;
-            if ($chunkData['files'] && $chunkData['totals']) {
-                $chunks[] = $chunkData;
-            }
+
+            $chunks[] = $chunkData;
         }
 
         return $chunks;
