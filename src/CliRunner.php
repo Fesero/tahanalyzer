@@ -23,30 +23,31 @@ class CliRunner
         }
 
         try {
-            $analyzer = new Analyzer(
-                $exclude ?? ['vendor']
-            );
             $apiClient = new ApiClient(
                 $endpoint ?? '',
                 $token ?? ''
             );
 
             foreach ($config['paths'] as $path) {
+
+
                 // Запуск PHP_CodeSniffer
-                $snifferResults = $analyzer->runAnalyze($path, 'sniffer');
+                $snifferAnalyzer = AnalyzerFactory::create($path, 'sniffer', $exclude ?? ['vendor']);
+                $snifferResults = $snifferAnalyzer->run();
                 if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
                     echo "❌ " . $apiClient->getFormattedError() . "\n";
                 }
     
                 // Запуск PHPStan
-                $phpstanResults = $analyzer->runAnalyze($path, 'phpstan');
+                $phpstanAnalyzer = AnalyzerFactory::create($path, 'phpstan', $exclude ?? ['vendor']);
+                $phpstanResults = $phpstanAnalyzer->run();
                 if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
                     echo "❌ " . $apiClient->getFormattedError() . "\n";
                 }
             }
         } catch (\Exception $e) {
             echo "❌ Ошибка: " . $e->getMessage() . "\n";
-            echo "Полный трейс:\n" . $e->getTraceAsString(); // Добавьте эту строку
+            echo "Полный трейс:\n" . $e->getTraceAsString();
             exit(1);
         }
     }
