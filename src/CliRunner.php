@@ -6,6 +6,11 @@ use \Symfony\Contracts\HttpClient\ResponseInterface;
 
 class CliRunner
 {
+
+    private array $availableTests = [
+        'sniffer', 'phpstan'
+    ];
+
     public static function run(array $argv)
     {
         //Загрузка конфига
@@ -29,20 +34,12 @@ class CliRunner
             );
 
             foreach ($config['paths'] as $path) {
-
-
-                // Запуск PHP_CodeSniffer
-                $snifferAnalyzer = AnalyzerFactory::create($path, 'sniffer', $exclude ?? ['vendor']);
-                $snifferResults = $snifferAnalyzer->run();
-                if (!$apiClient->sendResults($snifferResults, 'sniffer')) {
-                    echo "❌ " . $apiClient->getFormattedError() . "\n";
-                }
-    
-                // Запуск PHPStan
-                $phpstanAnalyzer = AnalyzerFactory::create($path, 'phpstan', $exclude ?? ['vendor']);
-                $phpstanResults = $phpstanAnalyzer->run();
-                if (!$apiClient->sendResults($phpstanResults, 'phpstan')) {
-                    echo "❌ " . $apiClient->getFormattedError() . "\n";
+                foreach (self::$availableTests as $testType) {
+                    $testAnalyzer = AnalyzerFactory::create(path: $path, type: $testType, exclude: $exclude ?? ['vendor']);
+                    $testResult = $testAnalyzer->run();
+                    if (!$apiClient->sendResults(data: $testResult, type: $testType)) {
+                        echo "❌ " . $apiClient->getFormattedError() . "\n";
+                    }
                 }
             }
         } catch (\Exception $e) {

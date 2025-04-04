@@ -3,31 +3,26 @@
 namespace Fesero\Tahanalyzer\Analyzers;
 
 use Fesero\Tahanalyzer\Factory\AbstractAnalyzer;
+use Fesero\Tahanalyzer\Attributes\BinaryPath;
+use Fesero\Tahanalyzer\Attributes\ConfigPath;
 
+#[BinaryPath(
+    path: '/vendor/bin/phpcs',
+    errorMessage: 'PHP_CodeSniffer не найден. Установите зависимости через composer install.'
+)]
+#[ConfigPath(
+    path: '/phpcs.xml',
+    errorMessage: 'Файл конфигурации phpcs.xml не найден. Запустите composer install для его создания.'
+)]
 class Sniffer extends AbstractAnalyzer
 {
     public function run(): array
     {
-        // Используем путь относительно проекта
-        $phpcsPath = $this->normalizePath($this->root . '/vendor/bin/phpcs');
-        
-        if (!file_exists($phpcsPath)) {
-            throw new \RuntimeException('PHP_CodeSniffer не найден. Установите зависимости через composer install.');
-        }
-
-        if (!file_exists($this->path)) {
-            throw new \RuntimeException("Путь не существует: $this->path");
-        }
-
-        // Проверяем наличие конфигурации
-        if (!file_exists($this->configPath)) {
-            throw new \RuntimeException("Файл конфигурации phpcs.xml не найден. Запустите composer install для его создания.");
-        }
-
         $excludeArgs = array_map(fn($dir) => "--ignore={$dir}", $this->exclude);
         $command = array_merge(
             [
-                $phpcsPath,
+                PHP_BINARY,
+                $this->binaryPath,
                 "-d", "memory_limit=512M",
                 '--report=json',
                 "--standard={$this->configPath}"

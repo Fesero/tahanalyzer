@@ -3,25 +3,24 @@
 namespace Fesero\Tahanalyzer\Analyzers;
 
 use Fesero\Tahanalyzer\Factory\AbstractAnalyzer;
+use Fesero\Tahanalyzer\Attributes\BinaryPath;
+use Fesero\Tahanalyzer\Attributes\ConfigPath;
 
+#[BinaryPath(
+    path: '/vendor/phpstan/phpstan/bin/phpstan',
+    errorMessage: 'PHPStan не найден. Установите через composer require --dev phpstan/phpstan'
+)]
+#[ConfigPath(
+    path: '/phpstan.neon',
+    errorMessage: 'Файл конфигурации phpstan.neon не найден. Запустите composer install для его создания.'
+)]
 class PHPStan extends AbstractAnalyzer
 {
     public function run(): array
     {
-        // Используем PHP для запуска PHPStan
-        $phpstanPath = $this->normalizePath($this->root . '/vendor/phpstan/phpstan/bin/phpstan');
-
-        if (!file_exists($phpstanPath)) {
-            throw new \RuntimeException('PHPStan не найден. Установите через composer require --dev phpstan/phpstan');
-        }
-
-        if (!file_exists($this->path)) {
-            throw new \RuntimeException("Путь не существует: $this->path");
-        }
-
         $command = [
             PHP_BINARY,
-            $phpstanPath,
+            $this->binaryPath,
             'analyse',
             '--error-format=json',
             "--configuration=phpstan.neon",
