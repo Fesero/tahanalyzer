@@ -2,6 +2,7 @@ parameters:
   level: 5
   paths:
     - app
-    - database
+  scanDirectories:
+    - bitrix
   ignoreErrors:
     - '#Call to an undefined method#' # Пример исключения
