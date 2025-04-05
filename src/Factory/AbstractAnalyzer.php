@@ -10,7 +10,7 @@ abstract class AbstractAnalyzer {
     protected array $exclude;
     protected string $configPath, $path, $root, $binaryPath;
 
-    public function __construct(array $exclude = [], string $root, string $path)
+    public function __construct(string $root, string $path, array $exclude = [])
     {
         $this->exclude = $exclude;
         $this->path = $path;
@@ -22,10 +22,10 @@ abstract class AbstractAnalyzer {
 
     abstract public function run(): array;
 
-    protected function normalizePath(): string
+    protected function normalizePath(string $path): string
     {
         // Заменяем все разделители путей на DIRECTORY_SEPARATOR
-        $tempPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $this->path);
+        $tempPath = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $path);
         
         // Убираем двойные разделители
         $tempPath = preg_replace('#\\' . DIRECTORY_SEPARATOR . '+#', DIRECTORY_SEPARATOR, $tempPath);
@@ -87,6 +87,8 @@ abstract class AbstractAnalyzer {
 
     protected function createProcess(array $command): Process
     {
-        return new Process($command);
+        $process = new Process($command);
+        $process->setTimeout(300); // Increase timeout to 300 seconds (5 minutes)
+        return $process;
     }
 }

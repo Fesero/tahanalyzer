@@ -23,6 +23,7 @@ class Sniffer extends AbstractAnalyzer
             [
                 PHP_BINARY,
                 $this->binaryPath,
+                "-q",
                 "-d", "memory_limit=512M",
                 '--report=json',
                 "--standard={$this->configPath}"

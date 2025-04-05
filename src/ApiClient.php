@@ -41,7 +41,7 @@ class ApiClient
 
     public function sendResults(array $data, string $type, string $projectName): bool
     {
-        $client = HttpClient::create();
+        $client = HttpClient::create(['timeout' => 120]);
         $chunks = $this->splitIntoChunks($data);
         $success = true;
         $hasErrors = false;
@@ -94,44 +94,49 @@ class ApiClient
         }
 
         $statusCode = $this->lastResponse->getStatusCode();
-        $content = $this->getLastResponseContent();
+        $content = null;
+        $errorDetails = [];
 
-        if (!$content) {
-            return "Ошибка сервера (HTTP {$statusCode})";
+        try {
+            $content = $this->lastResponse->toArray(false); // Throw exception on non-2xx
+        } catch (\Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface | \Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface $e) {
+            // Error status codes (4xx, 5xx)
+            try {
+                $content = $e->getResponse()->toArray(false);
+            } catch (\Exception $decodeError) {
+                // Failed to decode JSON body
+                $errorDetails[] = "Не удалось декодировать тело ответа: " . $decodeError->getMessage();
+                $errorDetails[] = "Тело ответа (Raw): " . $e->getResponse()->getContent(false);
+            }
+        } catch (\Exception $e) {
+            // Other exceptions (network, etc.)
+            return "Ошибка получения ответа: " . $e->getMessage();
         }
 
-        $message = [];
-        
-        // Добавляем основное сообщение об ошибке
-        if (isset($content['message'])) {
-            $message[] = $content['message'];
+        $baseMessage = "Ошибка сервера (HTTP {$statusCode})";
+        if (isset($content['message']) && is_string($content['message'])) {
+            $baseMessage = $content['message'] . " (HTTP {$statusCode})";
+        }
+        if (isset($content['error']) && is_string($content['error'])) {
+            $errorDetails[] = "Детали: " . $content['error'];
         }
 
-        // Добавляем детали ошибки
-        if (isset($content['error'])) {
-            $message[] = $content['error'];
-        }
-
-        // Добавляем ошибки валидации
-        if (isset($content['errors'])) {
-            if (is_array($content['errors'])) {
-                foreach ($content['errors'] as $field => $errors) {
-                    if (is_array($errors)) {
-                        $message[] = "{$field}: " . implode(', ', $errors);
-                    } else {
-                        $message[] = "{$field}: {$errors}";
-                    }
+        // Process Laravel validation errors specifically
+        if (isset($content['errors']) && is_array($content['errors'])) {
+            foreach ($content['errors'] as $field => $fieldErrors) {
+                if (is_array($fieldErrors)) {
+                    $errorDetails[] = "- Поле '{$field}': " . implode(", ", $fieldErrors);
+                } else {
+                    $errorDetails[] = "- Поле '{$field}': " . $fieldErrors;
                 }
-            } else {
-                $message[] = $content['errors'];
             }
         }
 
-        // Если нет деталей, возвращаем базовое сообщение
-        if (empty($message)) {
-            return "Ошибка сервера (HTTP {$statusCode})";
+        $fullMessage = [$baseMessage];
+        if (!empty($errorDetails)) {
+            $fullMessage[] = implode("\n", $errorDetails);
         }
 
-        return implode("\n", $message);
+        return implode("\n", $fullMessage);
     }
 }

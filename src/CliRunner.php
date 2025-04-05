@@ -3,11 +3,11 @@
 namespace Fesero\Tahanalyzer;
 
 use \Symfony\Contracts\HttpClient\ResponseInterface;
+use Fesero\Tahanalyzer\AnalyzerFactory;
 
 class CliRunner
 {
-
-    private array $availableTests = [
+    private static array $availableTests = [
         'sniffer', 'phpstan'
     ];
 
@@ -39,8 +39,18 @@ class CliRunner
                 foreach (self::$availableTests as $testType) {
                     $testAnalyzer = AnalyzerFactory::create(path: $path, type: $testType, exclude: $exclude);
                     $testResult = $testAnalyzer->run();
-                    if (!$apiClient->sendResults(data: $testResult, type: $testType, projectName: $projectName)) {
-                        echo "❌ " . $apiClient->getFormattedError() . "\n";
+
+                    // Call sendResults but don't rely solely on its boolean return for errors
+                    $apiClient->sendResults(data: $testResult, type: $testType, projectName: $projectName);
+
+                    // Check the actual status code of the last response
+                    $lastResponse = $apiClient->getLastResponse();
+                    if ($lastResponse && $lastResponse->getStatusCode() >= 400) {
+                        // Use the existing error formatting method to display details
+                        echo "❌ Ошибка при отправке результатов ({$testType} для {$path}): " . $apiClient->getFormattedError() . "\n";
+                    } else if (!$lastResponse && $apiClient->getLastError()){
+                        // Handle connection errors
+                         echo "❌ Ошибка соединения: " . $apiClient->getLastError() . "\n";
                     }
                 }
             }
