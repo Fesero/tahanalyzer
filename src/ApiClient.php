@@ -39,7 +39,7 @@ class ApiClient
         return $chunks;
     }
 
-    public function sendResults(array $data, string $type): bool
+    public function sendResults(array $data, string $type, string $projectName): bool
     {
         $client = HttpClient::create();
         $chunks = $this->splitIntoChunks($data);
@@ -49,6 +49,8 @@ class ApiClient
         foreach ($chunks as $chunk) {
             $endpoint = "{$this->baseUrl}/tests/{$type}";
             
+            $chunk['projectName'] = $projectName;
+
             $this->lastResponse = $client->request('POST', $endpoint, [
                 'headers' => ['Authorization' => "Bearer {$this->token}"],
                 'json' => $chunk

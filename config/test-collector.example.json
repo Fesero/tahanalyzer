@@ -6,5 +6,6 @@
     "api": {
         "base_url": "",
         "token": ""
-    }
+    },
+    "projectName": "Default Project Name"
 }

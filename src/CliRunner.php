@@ -16,28 +16,30 @@ class CliRunner
         //Загрузка конфига
         $config = self::loadConfig(getcwd());
 
-        $endpoint = $config['api']['base_url'];
-        $token = $config['api']['token'];
-        $standart = $config['standart'];
-        $exclude = $config['exclude'];
-        $paths = $config['paths'];
+        $endpoint = $config['api']['base_url'] ?? null;
+        $token = $config['api']['token'] ?? null;
+        $projectName = $config['projectName'] ?? 'Default Project';
+        $standart = $config['standart'] ?? null;
+        $exclude = $config['exclude'] ?? ['vendor'];
+        $paths = $config['paths'] ?? [getcwd()];
 
         if (!$endpoint || !$token) {
+            echo "Ошибка: Не заданы endpoint или token в test-collector.json\n";
             self::showHelp();
             exit(1);
         }
 
         try {
             $apiClient = new ApiClient(
-                $endpoint ?? '',
-                $token ?? ''
+                $endpoint,
+                $token
             );
 
-            foreach ($config['paths'] as $path) {
+            foreach ($paths as $path) {
                 foreach (self::$availableTests as $testType) {
-                    $testAnalyzer = AnalyzerFactory::create(path: $path, type: $testType, exclude: $exclude ?? ['vendor']);
+                    $testAnalyzer = AnalyzerFactory::create(path: $path, type: $testType, exclude: $exclude);
                     $testResult = $testAnalyzer->run();
-                    if (!$apiClient->sendResults(data: $testResult, type: $testType)) {
+                    if (!$apiClient->sendResults(data: $testResult, type: $testType, projectName: $projectName)) {
                         echo "❌ " . $apiClient->getFormattedError() . "\n";
                     }
                 }
