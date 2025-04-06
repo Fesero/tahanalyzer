@@ -8,7 +8,8 @@ use Fesero\Tahanalyzer\AnalyzerFactory;
 class CliRunner
 {
     private static array $availableTests = [
-        'sniffer', 'phpstan'
+        'sniffer' => 'sniffer',
+        'phpstan' => 'static_analysis'
     ];
 
     public static function run(array $argv)
@@ -36,12 +37,12 @@ class CliRunner
             );
 
             foreach ($paths as $path) {
-                foreach (self::$availableTests as $testType) {
+                foreach (self::$availableTests as $testType => $routePath) {
                     $testAnalyzer = AnalyzerFactory::create(path: $path, type: $testType, exclude: $exclude);
                     $testResult = $testAnalyzer->run();
 
                     // Call sendResults but don't rely solely on its boolean return for errors
-                    $apiClient->sendResults(data: $testResult, type: $testType, projectName: $projectName);
+                    $apiClient->sendResults(data: $testResult, type: $routePath, projectName: $projectName);
 
                     // Check the actual status code of the last response
                     $lastResponse = $apiClient->getLastResponse();

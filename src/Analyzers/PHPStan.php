@@ -7,7 +7,7 @@ use Fesero\Tahanalyzer\Attributes\BinaryPath;
 use Fesero\Tahanalyzer\Attributes\ConfigPath;
 
 #[BinaryPath(
-    path: '/vendor/phpstan/phpstan/bin/phpstan',
+    path: '/vendor/bin/phpstan',
     errorMessage: 'PHPStan не найден. Установите через composer require --dev phpstan/phpstan'
 )]
 #[ConfigPath(
