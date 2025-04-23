@@ -14,12 +14,14 @@
         "phpstan/phpstan-strict-rules": "^2.0"
     },
     "require-dev": {
-        "composer/composer": "^2.0"
+        "composer/composer": "^2.0",
+        "pestphp/pest": "^3.8"
     },
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Fesero\\Tahanalyzer\\": "src/"
+            "Fesero\\Tahanalyzer\\": "src/",
+            "Tests\\": "tests/"
         }
     },
     "extra": {
@@ -31,5 +33,10 @@
             "email": "fesero@bk.ru"
         }
     ],
-    "bin": ["bin/test-collector"]
+    "bin": ["bin/test-collector"],
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    }
 }
