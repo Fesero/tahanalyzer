@@ -1,9 +1,16 @@
 <?php
+declare(strict_types=1);
 
 namespace Fesero\Tahanalyzer;
 
-class Installer {
-    public static function copyConfig() {
+class Installer 
+{
+    /**
+     * Summary of copyConfig
+     * @return void
+     */
+    public static function copyConfig(): void 
+    {
         self::updateConfig(
             'test-collector.example.json',
             'test-collector.json'
@@ -22,11 +29,19 @@ class Installer {
         );
     }
 
+    /**
+     * Summary of updateConfig
+     * @param string $sourceFile
+     * @param string $destinationFile
+     * @param bool $isJson
+     * @return void
+     */
     private static function updateConfig(
         string $sourceFile,
         string $destinationFile,
         bool $isJson = true
-    ) {
+    ): void 
+    {
         $sourcePath = __DIR__ . "/../config/{$sourceFile}";
         $destinationPath = getcwd() . "/{$destinationFile}";
 
@@ -62,7 +77,14 @@ class Installer {
         }
     }
 
-    private static function getConfigVersion(string $path, bool $isJson): int {
+    /**
+     * Summary of getConfigVersion
+     * @param string $path
+     * @param bool $isJson
+     * @return int
+     */
+    private static function getConfigVersion(string $path, bool $isJson): int 
+    {
         $content = file_get_contents($path);
         if ($isJson) {
             $config = json_decode($content, true);
@@ -80,11 +102,19 @@ class Installer {
         return $matches[1] ?? 1;
     }
 
+    /**
+     * Summary of mergeConfigs
+     * @param string $newConfigPath
+     * @param string $oldConfigPath
+     * @param bool $isJson
+     * @return bool|string
+     */
     private static function mergeConfigs(
         string $newConfigPath,
         string $oldConfigPath,
         bool $isJson
-    ): string {
+    ): string 
+    {
         if ($isJson) {
             $newConfig = json_decode(file_get_contents($newConfigPath), true);
             $oldConfig = json_decode(file_get_contents($oldConfigPath), true);
