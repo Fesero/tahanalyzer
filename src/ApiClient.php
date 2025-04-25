@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Fesero\Tahanalyzer;
 
@@ -7,18 +8,22 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 
 class ApiClient
 {
-    private $baseUrl;
-    private $token;
     private $lastResponse;
     private $lastError;
     private const CHUNK_SIZE = 3; // Number of files per chunk
 
-    public function __construct(string $baseUrl, string $token)
-    {
-        $this->baseUrl = $baseUrl;
-        $this->token = $token;
-    }
+    /**
+     * Summary of __construct
+     * @param string $baseUrl
+     * @param string $token
+     */
+    public function __construct(private string $baseUrl, private string $token) {}
 
+    /**
+     * Summary of splitIntoChunks
+     * @param array $data
+     * @return array[]
+     */
     private function splitIntoChunks(array $data): array
     {
         if (!isset($data['files']) || empty($data['files'])) {
@@ -29,7 +34,7 @@ class ApiClient
         $chunks = [];
         $fileEntries = array_chunk($files, self::CHUNK_SIZE, true);
 
-        foreach ($fileEntries as $index => $chunkFiles) {
+        foreach ($fileEntries as $chunkFiles) {
             $chunkData = $data;
             $chunkData['files'] = $chunkFiles;
 
@@ -39,12 +44,18 @@ class ApiClient
         return $chunks;
     }
 
+    /**
+     * Summary of sendResults
+     * @param array $data
+     * @param string $type
+     * @param string $projectName
+     * @return bool
+     */
     public function sendResults(array $data, string $type, string $projectName): bool
     {
         $client = HttpClient::create(['timeout' => 120]);
         $chunks = $this->splitIntoChunks($data);
         $success = true;
-        $hasErrors = false;
 
         foreach ($chunks as $chunk) {
             $endpoint = "{$this->baseUrl}/tests/{$type}";
@@ -60,16 +71,28 @@ class ApiClient
         return $success;
     }
 
+    /**
+     * Summary of getLastResponse
+     * @return ResponseInterface
+     */
     public function getLastResponse(): ?ResponseInterface
     {
         return $this->lastResponse;
     }
 
+    /**
+     * Summary of getLastError
+     * @return string|null
+     */
     public function getLastError(): ?string
     {
         return $this->lastError;
     }
 
+    /**
+     * Summary of getLastResponseContent
+     * @return array|null
+     */
     public function getLastResponseContent(): ?array
     {
         if (!$this->lastResponse) {
@@ -77,16 +100,20 @@ class ApiClient
         }
 
         try {
-            return json_decode($this->lastResponse->getContent(), true);
+            return json_decode(json: $this->lastResponse->getContent(), associative: true);
         } catch (\Exception $e) {
             return null;
         }
     }
 
+    /**
+     * Summary of getFormattedError
+     * @return string
+     */
     public function getFormattedError(): string
     {
         if ($this->lastError) {
-            return "Ошибка соединения: " . $this->lastError;
+            return "Ошибка соединения: {$this->lastError}";
         }
 
         if (!$this->lastResponse) {
@@ -124,11 +151,7 @@ class ApiClient
         // Process Laravel validation errors specifically
         if (isset($content['errors']) && is_array($content['errors'])) {
             foreach ($content['errors'] as $field => $fieldErrors) {
-                if (is_array($fieldErrors)) {
-                    $errorDetails[] = "- Поле '{$field}': " . implode(", ", $fieldErrors);
-                } else {
-                    $errorDetails[] = "- Поле '{$field}': " . $fieldErrors;
-                }
+                $errorDetails[] = "- Поле '{$field}': " . \is_array($fieldErrors) ? implode(", ", $fieldErrors) : $fieldErrors;
             }
         }
 

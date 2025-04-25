@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Fesero\Tahanalyzer\Analyzers;
 
@@ -16,6 +17,11 @@ use Fesero\Tahanalyzer\Attributes\ConfigPath;
 )]
 class Sniffer extends AbstractAnalyzer
 {
+    /**
+     * Summary of run
+     * @throws \RuntimeException
+     * @return array
+     */
     public function run(): array
     {
         $excludeArgs = array_map(fn($dir) => "--ignore={$dir}", $this->exclude);

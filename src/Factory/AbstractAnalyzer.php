@@ -1,4 +1,5 @@
 <?php
+declare(strict_types=1);
 
 namespace Fesero\Tahanalyzer\Factory;
 
@@ -6,22 +7,38 @@ use Fesero\Tahanalyzer\Attributes\BinaryPath;
 use Fesero\Tahanalyzer\Attributes\ConfigPath;
 use Symfony\Component\Process\Process;
 
-abstract class AbstractAnalyzer {
-    protected array $exclude;
-    protected string $configPath, $path, $root, $binaryPath;
+abstract class AbstractAnalyzer 
+{
+    protected string $configPath, $binaryPath;
 
-    public function __construct(string $root, string $path, array $exclude = [])
+    /**
+     * Summary of __construct
+     * @param string $root
+     * @param string $path
+     * @param array $exclude
+     */
+    public function __construct(
+        protected string $root, 
+        protected string $path, 
+        protected array $exclude = []
+        )
     {
-        $this->exclude = $exclude;
-        $this->path = $path;
-        $this->root = $root;
         $this->binaryPath = $this->getBinaryPath();
         $this->configPath = $this->getConfigPath();
         $this->validatePath();
     }
 
+    /**
+     * Summary of run
+     * @return void
+     */
     abstract public function run(): array;
 
+    /**
+     * Summary of normalizePath
+     * @param string $path
+     * @return string
+     */
     protected function normalizePath(string $path): string
     {
         // Заменяем все разделители путей на DIRECTORY_SEPARATOR
@@ -36,6 +53,11 @@ abstract class AbstractAnalyzer {
         return $tempPath;
     }
 
+    /**
+     * Summary of validatePath
+     * @throws \RuntimeException
+     * @return void
+     */
     protected function validatePath(): void
     {
         if (!file_exists($this->path)) {
@@ -43,6 +65,11 @@ abstract class AbstractAnalyzer {
         }
     }
 
+    /**
+     * Summary of getBinaryPath
+     * @throws \RuntimeException
+     * @return string
+     */
     protected function getBinaryPath(): string
     {
         $attributes = $this->getAttributes(BinaryPath::class);
@@ -54,6 +81,11 @@ abstract class AbstractAnalyzer {
         return $this->getFullPath($attributes);
     }
 
+    /**
+     * Summary of getConfigPath
+     * @throws \RuntimeException
+     * @return string
+     */
     protected function getConfigPath(): string
     {
         $attributes = $this->getAttributes(ConfigPath::class);
@@ -65,6 +97,11 @@ abstract class AbstractAnalyzer {
         return $this->getFullPath($attributes);
     }
 
+    /**
+     * Summary of getAttributes
+     * @param string $className
+     * @return mixed|\ReflectionAttribute|null
+     */
     private function getAttributes(string $className): ?\ReflectionAttribute
     {
         $reflection = new \ReflectionClass($this);
@@ -73,6 +110,12 @@ abstract class AbstractAnalyzer {
         return $attributes[0] ?? null;
     }
 
+    /**
+     * Summary of getFullPath
+     * @param \ReflectionAttribute $attributes
+     * @throws \RuntimeException
+     * @return string
+     */
     private function getFullPath(\ReflectionAttribute $attributes): string
     {
         $config = $attributes->newInstance();
@@ -85,6 +128,11 @@ abstract class AbstractAnalyzer {
         return $fullPath;
     }
 
+    /**
+     * Summary of createProcess
+     * @param array $command
+     * @return Process
+     */
     protected function createProcess(array $command): Process
     {
         $process = new Process($command);
